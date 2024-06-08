@@ -2,6 +2,7 @@ import React, { useState, FormEvent } from 'react';
 import { Story } from '../Models/Story';
 import { Task } from '../Models/Task';
 import { User } from '../Models/User';
+import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Box, Grid } from '@mui/material';
 
 interface TaskFormProps {
   stories: Story[];
@@ -37,80 +38,109 @@ const TaskForm: React.FC<TaskFormProps> = ({ stories, users, onSubmit, onCancel,
       endDate: status === 'done' ? new Date(endDate) : undefined,
       assigneeId: status !== 'todo' ? assigneeId : undefined,
     };
-    console.log('Submitting task:', task); // Отладочное сообщение
     onSubmit(task);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        placeholder="Task Name"
+    <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <TextField
+        label="Task Name"
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
       />
-      <textarea
-        placeholder="Task Description"
+      <TextField
+        label="Task Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
+        multiline
+        rows={4}
         required
       />
-      <select value={priority} onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}>
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
-      </select>
-      <select value={storyId} onChange={(e) => setStoryId(e.target.value)}>
-        {stories.map(story => (
-          <option key={story.id} value={story.id}>{story.name}</option>
-        ))}
-      </select>
-      <input
+      <FormControl required sx={{ minWidth: 120 }}>
+        <InputLabel>Priority</InputLabel>
+        <Select value={priority} onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}>
+          <MenuItem value="low">Low</MenuItem>
+          <MenuItem value="medium">Medium</MenuItem>
+          <MenuItem value="high">High</MenuItem>
+        </Select>
+      </FormControl>
+      <FormControl required sx={{ minWidth: 120 }}>
+        <InputLabel>Story</InputLabel>
+        <Select value={storyId} onChange={(e) => setStoryId(e.target.value)}>
+          {stories.map(story => (
+            <MenuItem key={story.id} value={story.id}>{story.name}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      <TextField
+        label="Estimated Hours"
         type="number"
-        placeholder="Estimated Hours"
         value={estimatedHours}
         onChange={(e) => setEstimatedHours(Number(e.target.value))}
         required
       />
-      <select value={status} onChange={(e) => setStatus(e.target.value as 'todo' | 'doing' | 'done')}>
-        <option value="todo">To Do</option>
-        <option value="doing">Doing</option>
-        <option value="done">Done</option>
-      </select>
+      <FormControl required sx={{ minWidth: 120 }}>
+        <InputLabel>Status</InputLabel>
+        <Select value={status} onChange={(e) => setStatus(e.target.value as 'todo' | 'doing' | 'done')}>
+          <MenuItem value="todo">To Do</MenuItem>
+          <MenuItem value="doing">Doing</MenuItem>
+          <MenuItem value="done">Done</MenuItem>
+        </Select>
+      </FormControl>
       {status === 'doing' && (
-        <div>
-          <input
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <TextField
+            label="Start Date"
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             required
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
-          <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
-            {users.map(user => (
-              <option key={user.id} value={user.id}>{user.firstName} {user.lastName}</option>
-            ))}
-          </select>
-        </div>
+          <FormControl sx={{ minWidth: 120 }}>
+            <InputLabel>Assignee</InputLabel>
+            <Select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
+              {users.map(user => (
+                <MenuItem key={user.id} value={user.id}>{user.firstName} {user.lastName}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
       )}
       {status === 'done' && (
-        <div>
-          <input
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <TextField
+            label="End Date"
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
             required
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
-          <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
-            {users.map(user => (
-              <option key={user.id} value={user.id}>{user.firstName} {user.lastName}</option>
-            ))}
-          </select>
-        </div>
+          <FormControl sx={{ minWidth: 60 }}>
+            <InputLabel>Assignee</InputLabel>
+            <Select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
+              {users.map(user => (
+                <MenuItem key={user.id} value={user.id}>{user.firstName} {user.lastName}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
       )}
-      <button className="rounded-button" type="submit">{editingTask ? 'Update Task' : 'Add Task'}</button>
-      <button className="rounded-button" type="button" onClick={onCancel}>Cancel</button>
-    </form>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+        <Button variant="contained" color="primary" type="submit">
+          {editingTask ? 'Update Task' : 'Add Task'}
+        </Button>
+        <Button variant="outlined" color="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+      </Box>
+    </Box>
   );
 };
 

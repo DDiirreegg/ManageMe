@@ -1,49 +1,77 @@
 import React from 'react';
 import { Story } from '../Models/Story';
 import { Task } from '../Models/Task';
+import { User } from '../Models/User'; // Добавьте это
+import { Button, Typography, Box, List, ListItem, Grid, Paper } from '@mui/material';
 
 interface StoryDetailProps {
   story: Story;
   tasks: Task[];
+  users: User[]; // Добавьте это
   onBack: () => void;
   onEditTask: (task: Task) => void;
   onDeleteTask: (storyId: string, taskId: string) => void;
   onAddTask: () => void;
 }
 
-const StoryDetail: React.FC<StoryDetailProps> = ({ story, tasks, onBack, onEditTask, onDeleteTask, onAddTask }) => {
+const StoryDetail: React.FC<StoryDetailProps> = ({ story, tasks, users, onBack, onEditTask, onDeleteTask, onAddTask }) => {
+
+  const getAssigneeName = (assigneeId?: string) => {
+    if (!users || users.length === 0) return 'Unassigned';
+    const user = users.find(user => user.id === assigneeId);
+    return user ? `${user.firstName} ${user.lastName}` : 'Unassigned';
+  };
+
   return (
-    <div>
-      <button className="rounded-button" onClick={onBack}>Back to Stories</button>
-      <h2>{story.name}</h2>
-      <p>{story.description}</p>
-      <p>Priority: {story.priority}</p>
-      <p>Status: {story.status}</p>
-      <p>Created At: {story.createdAt.toLocaleDateString()}</p>
+    <Box sx={{ p: 2 }}>
+      <Button variant="contained" onClick={onBack} sx={{ mb: 2 }}>Back to Stories</Button>
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <Typography variant="h4" gutterBottom>{story.name}</Typography>
+        <Typography variant="body1" gutterBottom>{story.description}</Typography>
+        <Typography variant="body1" gutterBottom>Priority: {story.priority}</Typography>
+        <Typography variant="body1" gutterBottom>Status: {story.status}</Typography>
+        <Typography variant="body1" gutterBottom>Created At: {story.createdAt.toLocaleDateString()}</Typography>
 
-      <button className="rounded-button" onClick={onAddTask}>Add Task</button>
+        <Button variant="outlined" onClick={onAddTask} sx={{ mb: 2 }}>Add Task</Button>
+      </Paper>
 
-      <h3>Tasks</h3>
+      <Typography variant="h5" gutterBottom>Tasks</Typography>
       {tasks.length > 0 ? (
-        <ul>
+        <List>
           {tasks.map(task => (
-            <li key={task.id}>
-              <h4>Task: {task.name}</h4>
-              <p>Description: {task.description}</p>
-              <p>Hours: {task.estimatedHours}</p>
-              <p>Priority: {task.priority}</p>
-              <p>Status: {task.status}</p>              
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button className="rounded-button" onClick={() => onEditTask(task)}>Edit</button>
-                <button className="rounded-button" onClick={() => onDeleteTask(story.id, task.id)}>Delete</button>
-              </div>
-            </li>
+            <ListItem key={task.id}>
+              <Paper sx={{ p: 2, width: '100%' }}>
+                <Typography variant="h6">Task: {task.name}</Typography>
+                <Typography variant="body1">Description: {task.description}</Typography>
+                <Typography variant="body1">Estimated hours: {task.estimatedHours}</Typography>
+                <Typography variant="body1">Priority: {task.priority}</Typography>
+                <Typography variant="body1">Status: {task.status}</Typography>
+                <Typography variant="body1">Created: {task.createdAt.toLocaleDateString()}</Typography>
+                {task.startDate && (
+                  <Typography variant="body1">Start date: {task.startDate.toLocaleDateString()}</Typography>
+                )}
+                {task.endDate && (
+                  <Typography variant="body1">End date: {task.endDate.toLocaleDateString()}</Typography>
+                )}
+                {task.assigneeId && (
+                  <Typography variant="body1">Assignee: {getAssigneeName(task.assigneeId)}</Typography>
+                )}
+                <Grid container spacing={2} sx={{ mt: 1 }}>
+                  <Grid item>
+                    <Button variant="contained" onClick={() => onEditTask(task)}>Edit</Button>
+                  </Grid>
+                  <Grid item>
+                    <Button variant="contained" color="error" onClick={() => onDeleteTask(story.id, task.id)}>Delete</Button>
+                  </Grid>
+                </Grid>
+              </Paper>
+            </ListItem>
           ))}
-        </ul>
+        </List>
       ) : (
-        <p>No tasks available.</p>
+        <Typography variant="body1">No tasks available.</Typography>
       )}
-    </div>
+    </Box>
   );
 };
 

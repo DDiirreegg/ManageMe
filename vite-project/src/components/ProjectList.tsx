@@ -1,35 +1,37 @@
 import React from 'react';
 import { Project } from '../Models/Project';
-import ProjectService from '../Services/ProjectService';
+import { Button, ButtonGroup, Box, Grid } from '@mui/material';
 
 interface ProjectListProps {
   projects: Project[];
   currentProjectId: string | null;
   onProjectChange: (projectId: string) => void;
   onAddProject: () => void;
-  isProjectsVisible: boolean;
-  toggleProjectsVisibility: () => void;
 }
 
-const ProjectList: React.FC<ProjectListProps> = ({ projects, currentProjectId, onProjectChange, onAddProject, isProjectsVisible, toggleProjectsVisibility }) => {
+const ProjectList: React.FC<ProjectListProps> = ({ projects, currentProjectId, onProjectChange, onAddProject }) => {
   return (
-    <div style={{ width: '20%', padding: '10px', borderRight: '1px solid #ccc' }}>
-      <button className="rounded-button" onClick={toggleProjectsVisibility}>Projects</button>
-      {isProjectsVisible && (
-        <div>
-          {projects.map(project => (
-            <button
-              key={project.id}
-              className={`project-item ${project.id === currentProjectId ? 'selected-project' : ''}`}
-              onClick={() => onProjectChange(project.id)}
-            >
-              {project.name}
-            </button>
-          ))}
-          <button className="project-item" onClick={onAddProject}>Add Project</button>
-        </div>
-      )}
-    </div>
+    <Box sx={{ p: 2 }}>
+      <Grid container spacing={2} alignItems="center">
+        <Grid item xs={8}>
+          <ButtonGroup orientation="vertical" variant="contained" color="primary">
+            {projects.map(project => (
+              <Button
+                key={project.id}
+                variant={project.id === currentProjectId ? 'contained' : 'outlined'}
+                onClick={() => onProjectChange(project.id)}
+                sx={{ mb: 1 }}
+              >
+                {project.name}
+              </Button>
+            ))}
+          </ButtonGroup>
+        </Grid>
+        <Grid item xs={4}>
+          <Button variant="outlined" onClick={onAddProject}>Add Project</Button>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 

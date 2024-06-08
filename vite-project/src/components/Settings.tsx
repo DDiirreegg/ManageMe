@@ -1,11 +1,20 @@
 import React from 'react';
+import { Box, Typography, Switch } from '@mui/material';
 
-const Settings: React.FC = () => {
+interface SettingsProps {
+  onToggleDarkMode: () => void;
+  darkMode: boolean;
+}
+
+const Settings: React.FC<SettingsProps> = ({ onToggleDarkMode, darkMode }) => {
   return (
-    <div>
-      <h2>Settings</h2>
-      {/* Настройки пользователя */}
-    </div>
+    <Box>
+      <Typography variant="h4" gutterBottom>Settings</Typography>
+      <Box display="flex" alignItems="center">
+        <Typography variant="body1">Dark Mode</Typography>
+        <Switch checked={darkMode} onChange={onToggleDarkMode} />
+      </Box>
+    </Box>
   );
 };
 

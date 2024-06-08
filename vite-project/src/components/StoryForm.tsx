@@ -1,5 +1,6 @@
 import React, { useState, FormEvent } from 'react';
 import { Story } from '../Models/Story';
+import { TextField, Button, Select, MenuItem, Box, FormControl, InputLabel } from '@mui/material';
 
 interface StoryFormProps {
   onSubmit: (story: Story) => void;
@@ -29,33 +30,46 @@ const StoryForm: React.FC<StoryFormProps> = ({ onSubmit, onCancel, editingStory 
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        placeholder="Story Name"
+    <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <TextField
+        label="Story Name"
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
       />
-      <textarea
-        placeholder="Story Description"
+      <TextField
+        label="Story Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
+        multiline
+        rows={4}
         required
       />
-      <select value={priority} onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}>
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
-      </select>
-      <select value={status} onChange={(e) => setStatus(e.target.value as 'todo' | 'doing' | 'done')}>
-        <option value="todo">To Do</option>
-        <option value="doing">Doing</option>
-        <option value="done">Done</option>
-      </select>
-      <button className="rounded-button" type="submit">{editingStory ? 'Update Story' : 'Add Story'}</button>
-      <button className="rounded-button" type="button" onClick={onCancel}>Cancel</button>
-    </form>
+      <FormControl required>
+        <InputLabel>Priority</InputLabel>
+        <Select value={priority} onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}>
+          <MenuItem value="low">Low</MenuItem>
+          <MenuItem value="medium">Medium</MenuItem>
+          <MenuItem value="high">High</MenuItem>
+        </Select>
+      </FormControl>
+      <FormControl required>
+        <InputLabel>Status</InputLabel>
+        <Select value={status} onChange={(e) => setStatus(e.target.value as 'todo' | 'doing' | 'done')}>
+          <MenuItem value="todo">To Do</MenuItem>
+          <MenuItem value="doing">Doing</MenuItem>
+          <MenuItem value="done">Done</MenuItem>
+        </Select>
+      </FormControl>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Button variant="contained" color="primary" type="submit">
+          {editingStory ? 'Update Story' : 'Add Story'}
+        </Button>
+        <Button variant="outlined" color="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+      </Box>
+    </Box>
   );
 };
 

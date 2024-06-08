@@ -1,24 +1,39 @@
 import React from 'react';
+import { Button, Box, Typography } from '@mui/material';
 
 interface HeaderProps {
   isLoggedIn: boolean;
   onLogout: () => void;
+  username: string;
+  onTabChange: (tab: 'profile' | 'projects' | 'settings') => void;
+  darkMode: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ isLoggedIn, onLogout }) => {
+const Header: React.FC<HeaderProps> = ({ isLoggedIn, onLogout, username, onTabChange }) => {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', borderBottom: '1px solid #ccc' }}>
-      <h1 style={{ fontSize: '24px' }}>ManageMe</h1>
+    <Box sx={{ width: '200px', backgroundColor: '#f0f0f0', padding: '10px', display: 'flex', flexDirection: 'column' }}>
+      <Typography variant="h5" align="center" gutterBottom>ManageMe</Typography>
+      <Button fullWidth variant="contained" color="primary" sx={{ mb: 1 }} onClick={() => onTabChange('profile')}>
+        Your profile, {username}!
+      </Button>
+      <Button fullWidth variant="contained" color="primary" sx={{ mb: 1 }} onClick={() => onTabChange('projects')}>
+        Projects
+      </Button>
+      <Button fullWidth variant="contained" color="primary" sx={{ mb: 1 }} onClick={() => onTabChange('settings')}>
+        Settings
+      </Button>
       {isLoggedIn && (
-        <button 
-          className="rounded-button" 
-          style={{ alignSelf: 'center', backgroundColor: 'red', color: 'white' }} 
+        <Button
+          fullWidth
+          variant="contained"
+          color="secondary"
           onClick={onLogout}
+          sx={{ mt: 2 }}
         >
           Logout
-        </button>
+        </Button>
       )}
-    </div>
+    </Box>
   );
 };
 
