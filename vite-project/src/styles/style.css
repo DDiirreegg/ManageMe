@@ -1,0 +1,69 @@
+body {
+  font-family: Arial, sans-serif;
+}
+
+button {
+  display: block;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px; 
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+form input, form textarea, form select {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+form button {
+  align-self: flex-start;
+}
+
+.rounded-button {
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin: 2px;
+}
+
+.task-buttons, .story-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+
+.selected-project {
+  background-color: #28a745; 
+  color: white;
+}
+
+.project-item {
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  margin: 5px 0;
+  border: none;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.project-item:hover {
+  background-color: #0056b3;
+}
+
+.project-item.selected-project {
+  background-color: #28a745;
+  color: white;
+}
