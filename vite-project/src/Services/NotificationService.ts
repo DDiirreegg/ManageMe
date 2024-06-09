@@ -1,4 +1,3 @@
-
 import { BehaviorSubject, Observable } from 'rxjs';
 
 type ISOString = string;
@@ -10,6 +9,7 @@ export type Notification = {
   priority: 'low' | 'medium' | 'high';
   read: boolean;
 };
+
 class NotificationService {
   private notifications: Notification[] = [];
   private unreadCountSubject = new BehaviorSubject<number>(0);
@@ -31,6 +31,12 @@ class NotificationService {
 
   markAsRead(notification: Notification) {
     notification.read = true;
+    this.notificationsSubject.next(this.notifications);
+    this.updateUnreadCount();
+  }
+
+  clearAllNotifications() {
+    this.notifications = [];
     this.notificationsSubject.next(this.notifications);
     this.updateUnreadCount();
   }

@@ -1,6 +1,15 @@
 import React from 'react';
 import { User } from '../Models/User';
-import { Card, CardContent, Typography } from '@mui/material';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  TextField,
+  Box,
+  Container,
+  Divider,
+} from '@mui/material';
 
 interface ProfileProps {
   user: User;
@@ -8,19 +17,45 @@ interface ProfileProps {
 
 const Profile: React.FC<ProfileProps> = ({ user }) => {
   return (
-    <Card>
-      <CardContent>
-        <Typography variant="h5" component="div">
-          Your Profile
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Username: {user.firstName} {user.lastName}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Role: {user.role}
-        </Typography>
-      </CardContent>
-    </Card>
+    <Container>
+      <Card>
+        <CardContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Typography variant="h5" component="div" gutterBottom>
+                Profile Information
+              </Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="body1" color="textPrimary">
+                Name
+              </Typography>
+              <TextField
+                fullWidth
+                value={`${user.firstName} ${user.lastName}`}
+                InputProps={{
+                  readOnly: true,
+                }}
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="body1" color="textPrimary">
+                Role
+              </Typography>
+              <TextField
+                fullWidth
+                value={user.role}
+                InputProps={{
+                  readOnly: true,
+                }}
+                variant="outlined"
+              />
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+    </Container>
   );
 };
 

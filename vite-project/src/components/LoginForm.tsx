@@ -39,10 +39,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   return (
     <Container maxWidth="xs">
       <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography component="h1" variant="h5">
+        <Typography component="h1" variant="h5" sx={{ mb: 2 }}>
           Welcome to ManageMe
         </Typography>
-        <Box component="form" onSubmit={handleLogin} noValidate sx={{ mt: 1 }}>
+        <Box component="form" onSubmit={handleLogin} noValidate sx={{ mt: 1, width: '100%' }}>
           <TextField
             margin="dense"
             required
@@ -55,6 +55,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             size="small"
+            sx={{ mb: 2 }}
           />
           <TextField
             margin="dense"
@@ -68,25 +69,28 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             size="small"
-          />
-          {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 2, mb: 1 }}
-          >
-            Login
-          </Button>
-          <Button
-            fullWidth
-            variant="outlined"
             sx={{ mb: 2 }}
-          >
-            Register
-          </Button>
+          />
+          {error && <Alert severity="error" sx={{ mt: 2, width: '100%' }}>{error}</Alert>}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+            >
+              Login
+            </Button>
+            <Button
+              fullWidth
+              variant="outlined"
+            >
+              Register
+            </Button>
+          </Box>
         </Box>
-        <GoogleLoginButton onLoginSuccess={handleGoogleLoginSuccess} onLoginFailure={handleGoogleLoginFailure} />
+        <Box sx={{ mt: 2, width: '100%', display: 'flex', justifyContent: 'center' }}>
+          <GoogleLoginButton onLoginSuccess={handleGoogleLoginSuccess} onLoginFailure={handleGoogleLoginFailure} />
+        </Box>
       </Box>
     </Container>
   );

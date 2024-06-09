@@ -1,16 +1,18 @@
 import React from 'react';
 import { Story } from '../Models/Story';
-import { Button, List, ListItem, Typography, Box, Grid, Paper } from '@mui/material';
+import { Button, List, ListItem, Typography, Box, Grid, Paper, useTheme } from '@mui/material';
 
 interface StoryListProps {
   stories: Story[];
   onEditStory: (story: Story) => void;
   onDeleteStory: (storyId: string) => void;
   onAddStory: () => void;
-  onViewStory: (story: Story) => void; 
+  onViewStory: (story: Story) => void;
 }
 
 const StoryList: React.FC<StoryListProps> = ({ stories, onEditStory, onDeleteStory, onAddStory, onViewStory }) => {
+  const theme = useTheme();
+
   return (
     <Box sx={{ p: 2 }}>
       <Button variant="contained" color="primary" onClick={onAddStory} sx={{ mb: 2 }}>New Story</Button>
@@ -23,10 +25,10 @@ const StoryList: React.FC<StoryListProps> = ({ stories, onEditStory, onDeleteSto
                 width: '100%',
                 cursor: 'pointer',
                 transition: 'transform 0.2s, box-shadow 0.2s',
+                backgroundColor: theme.palette.background.paper,
                 '&:hover': {
                   transform: 'scale(1.02)',
                   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                  backgroundColor: '#f9f9f9',
                 },
                 '&:active': {
                   transform: 'scale(0.98)',
@@ -35,7 +37,7 @@ const StoryList: React.FC<StoryListProps> = ({ stories, onEditStory, onDeleteSto
               onClick={() => onViewStory(story)}
             >
               <Typography variant="h6">
-                Story name: {story.name}
+                Story: {story.name}
               </Typography>
               <Typography variant="body2" gutterBottom>
                 Description: {story.description}

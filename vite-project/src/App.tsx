@@ -17,9 +17,9 @@ import LoginForm from './components/LoginForm';
 import ProfileContainer from './components/ProfileContainer';
 import Settings from './components/Settings';
 import NotificationList from './components/Notification/NotificationList';
-import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
-import { Container, Button, Typography, Box } from '@mui/material';
+import { createTheme, ThemeProvider, CssBaseline, Paper, Box, Typography, Button, Container, TextField, useTheme } from '@mui/material';
 import { notificationService, Notification } from './Services/NotificationService';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 Modal.setAppElement('#root');
 
@@ -254,7 +254,14 @@ const App: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <Button variant="contained" onClick={() => setCurrentProjectId(null)}>Back to Projects</Button>
+                  <Button 
+                    variant="contained" 
+                    onClick={() => setCurrentProjectId(null)}
+                    startIcon={<ArrowBackIcon />} 
+                    sx={{ mb: 2 }}
+                  >
+                    Back to Stories
+                  </Button>
                   <Typography variant="h4" gutterBottom>Project: {projects.find(p => p.id === currentProjectId)?.name}</Typography>
                   {viewingStory ? (
                     <StoryDetail
@@ -287,42 +294,73 @@ const App: React.FC = () => {
           isOpen={isModalOpen}
           onRequestClose={closeModal}
           contentLabel={isStoryForm ? (editingStory ? "Edit Story" : "New Story") : (editingTask ? "Edit Task" : "New Task")}
+          style={{
+            overlay: { 
+              backgroundColor: 'rgba(0, 0, 0, 0.75)' 
+            },
+            content: { 
+              color: darkMode ? '#fff' : '#000',
+              background: darkMode ? '#333' : '#fff',
+              borderRadius: '8px',
+              padding: '20px',
+              border: darkMode ? '1px solid #555' : '1px solid #ddd'
+            }
+          }}
         >
-          <h2>{isStoryForm ? (editingStory ? "Edit Story" : "New Story") : (editingTask ? "Edit Task" : "New Task")}</h2>
-          {isStoryForm ? (
-            <StoryForm
-              onSubmit={handleSubmitStory}
-              onCancel={closeModal}
-              editingStory={editingStory}
-            />
-          ) : (
-            <TaskForm
-              stories={stories}
-              users={users}
-              onSubmit={handleSubmitTask}
-              onCancel={closeModal}
-              editingTask={editingTask}
-            />
-          )}
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h4" gutterBottom>
+              {isStoryForm ? (editingStory ? "Edit Story" : "New Story") : (editingTask ? "Edit Task" : "New Task")}
+            </Typography>
+            {isStoryForm ? (
+              <StoryForm
+                onSubmit={handleSubmitStory}
+                onCancel={closeModal}
+                editingStory={editingStory}
+              />
+            ) : (
+              <TaskForm
+                stories={stories}
+                users={users}
+                onSubmit={handleSubmitTask}
+                onCancel={closeModal}
+                editingTask={editingTask}
+              />
+            )}
+          </Box>
         </Modal>
 
         <Modal
           isOpen={isProjectModalOpen}
           onRequestClose={closeProjectModal}
           contentLabel="New Project"
+          style={{
+            overlay: { 
+              backgroundColor: 'rgba(0, 0, 0, 0.75)' 
+            },
+            content: { 
+              color: darkMode ? '#fff' : '#000',
+              background: darkMode ? '#333' : '#fff',
+              borderRadius: '8px',
+              padding: '20px',
+              border: darkMode ? '1px solid #555' : '1px solid #ddd'
+            }
+          }}
         >
-          <h2>New Project</h2>
-          <form onSubmit={handleSubmitProject}>
-            <input
-              type="text"
-              placeholder="Project Name"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              required
-            />
-            <Button variant="contained" type="submit">Add Project</Button>
-          </form>
-          <Button variant="contained" onClick={closeProjectModal}>Close</Button>
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h4" gutterBottom>New Project</Typography>
+            <form onSubmit={handleSubmitProject}>
+              <TextField
+                label="Project Name"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                fullWidth
+                required
+                sx={{ mb: 2 }}
+              />
+              <Button variant="contained" type="submit" sx={{ mr: 2 }}>Add Project</Button>
+              <Button variant="outlined" onClick={closeProjectModal}>Close</Button>
+            </form>
+          </Box>
         </Modal>
       </Box>
     </ThemeProvider>

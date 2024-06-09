@@ -14,7 +14,7 @@ const NotificationCounter: React.FC<NotificationCounterProps> = ({ onClick }) =>
   return (
     <IconButton color="inherit" onClick={onClick}>
       <Badge badgeContent={unreadCount} color="secondary">
-        <NotificationsIcon />
+        <NotificationsIcon sx={{ color: '#fff' }} />
       </Badge>
     </IconButton>
   );
