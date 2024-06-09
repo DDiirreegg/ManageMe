@@ -17,9 +17,9 @@ import LoginForm from './components/LoginForm';
 import ProfileContainer from './components/ProfileContainer';
 import Settings from './components/Settings';
 import NotificationList from './components/Notification/NotificationList';
-import { useNotificationService, Notification } from './Services/NotificationService';
 import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
 import { Container, Button, Typography, Box } from '@mui/material';
+import { notificationService, Notification } from './Services/NotificationService';
 
 Modal.setAppElement('#root');
 
@@ -41,8 +41,6 @@ const App: React.FC = () => {
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'profile' | 'projects' | 'settings' | 'notifications'>('projects');
   const [darkMode, setDarkMode] = useState<boolean>(false);
-  
-  const notificationService = useNotificationService();
 
   const handleLoginSuccess = (token: string, refreshToken: string) => {
     setAccessToken(token);
@@ -77,18 +75,21 @@ const App: React.FC = () => {
         setEditingStory(undefined);
       } else {
         ProjectService.createStory(currentProjectId, story);
-        if (story.priority === 'medium' || story.priority === 'high') {
-          sendNotification({
-            title: 'New Story Created',
-            message: `A new story with priority ${story.priority} has been created.`,
-            date: new Date().toISOString(),
-            priority: story.priority,
-            read: false
-          });
-        }
       }
       setStories(ProjectService.getAllStories(currentProjectId));
       setIsModalOpen(false);
+
+      if (story.priority === 'medium' || story.priority === 'high') {
+        const projectName = projects.find(p => p.id === currentProjectId)?.name;
+        const notification: Notification = {
+          title: 'New Story Created',
+          message: `A new story "${story.name}" with priority ${story.priority} has been created in project "${projectName}".`,
+          date: new Date().toISOString(),
+          priority: story.priority,
+          read: false
+        };
+        notificationService.send(notification);
+      }
     }
   };
 
@@ -99,26 +100,26 @@ const App: React.FC = () => {
         setEditingTask(undefined);
       } else {
         TaskService.createTask(viewingStory.id, task);
-        if (task.priority === 'medium' || task.priority === 'high') {
-          sendNotification({
-            title: 'New Task Created',
-            message: `A new task with priority ${task.priority} has been created.`,
-            date: new Date().toISOString(),
-            priority: task.priority,
-            read: false
-          });
-        }
       }
       setTasks(prevTasks => ({
         ...prevTasks,
         [viewingStory.id]: TaskService.getAllTasks(viewingStory.id),
       }));
       setIsModalOpen(false);
-    }
-  };
 
-  const sendNotification = (notification: Notification) => {
-    notificationService.send(notification);
+      if (task.priority === 'medium' || task.priority === 'high') {
+        const projectName = projects.find(p => p.id === currentProjectId)?.name;
+        const storyName = viewingStory.name;
+        const notification: Notification = {
+          title: 'New Task Created',
+          message: `A new task "${task.name}" with priority ${task.priority} has been created in story "${storyName}" of project "${projectName}".`,
+          date: new Date().toISOString(),
+          priority: task.priority,
+          read: false
+        };
+        notificationService.send(notification);
+      }
+    }
   };
 
   const handleEditStory = (story: Story) => {
@@ -157,6 +158,14 @@ const App: React.FC = () => {
     ProjectService.setCurrentProject(projectId);
     setCurrentProjectId(projectId);
     setViewingStory(null);
+  };
+
+  const handleDeleteProject = (projectId: string) => {
+    ProjectService.deleteProject(projectId);
+    setProjects(ProjectService.getAllProjects());
+    if (currentProjectId === projectId) {
+      setCurrentProjectId(null);
+    }
   };
 
   const handleAssigneeChange = (task: Task, userId: string) => {
@@ -240,6 +249,7 @@ const App: React.FC = () => {
                     currentProjectId={currentProjectId}
                     onProjectChange={handleProjectChange}
                     onAddProject={openProjectModal}
+                    onDeleteProject={handleDeleteProject}
                   />
                 </>
               ) : (

@@ -1,24 +1,19 @@
 import React from 'react';
-import { IconButton, Badge } from '@mui/material';
+import { Badge, IconButton } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { useNotificationService } from '../../Services/NotificationService';
+import { notificationService } from '../../Services/NotificationService';
+import { useObservable } from './useObservable';
 
 interface NotificationCounterProps {
   onClick: () => void;
 }
 
 const NotificationCounter: React.FC<NotificationCounterProps> = ({ onClick }) => {
-  const notificationService = useNotificationService();
-  const [unreadCount, setUnreadCount] = React.useState<number>(0);
-
-  React.useEffect(() => {
-    const subscription = notificationService.unreadCount().subscribe(setUnreadCount);
-    return () => subscription.unsubscribe();
-  }, [notificationService]);
+  const unreadCount = useObservable(notificationService.unreadCount(), 0);
 
   return (
     <IconButton color="inherit" onClick={onClick}>
-      <Badge badgeContent={unreadCount} color="error">
+      <Badge badgeContent={unreadCount} color="secondary">
         <NotificationsIcon />
       </Badge>
     </IconButton>

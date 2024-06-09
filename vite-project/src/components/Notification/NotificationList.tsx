@@ -1,40 +1,32 @@
 import React from 'react';
-import { List, ListItem, ListItemText, IconButton, Typography } from '@mui/material';
+import { List, ListItem, ListItemText, ListItemSecondaryAction, IconButton } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
-import { useNotificationService, Notification } from '../../Services/NotificationService';
+import { notificationService, Notification } from '../../Services/NotificationService';
+import { useObservable } from './useObservable';
 
 const NotificationList: React.FC = () => {
-  const notificationService = useNotificationService();
-  const [notifications, setNotifications] = React.useState<Notification[]>([]);
+  const notifications = useObservable(notificationService.list(), []);
 
-  React.useEffect(() => {
-    const subscription = notificationService.list().subscribe(setNotifications);
-    return () => subscription.unsubscribe();
-  }, [notificationService]);
-
-  const markAsRead = (notification: Notification) => {
+  const handleMarkAsRead = (notification: Notification) => {
     notificationService.markAsRead(notification);
   };
 
   return (
-    <div>
-      <Typography variant="h6">Notifications</Typography>
-      <List>
-        {notifications.map((notification, index) => (
-          <ListItem key={index} divider>
-            <ListItemText
-              primary={notification.title}
-              secondary={`${notification.message} - ${notification.date}`}
-            />
-            {!notification.read && (
-              <IconButton edge="end" onClick={() => markAsRead(notification)}>
-                <CheckIcon />
-              </IconButton>
-            )}
-          </ListItem>
-        ))}
-      </List>
-    </div>
+    <List>
+      {notifications.map((notification, index) => (
+        <ListItem key={index} button>
+          <ListItemText
+            primary={notification.title}
+            secondary={`${notification.message} - ${notification.date}`}
+          />
+          <ListItemSecondaryAction>
+            <IconButton edge="end" aria-label="mark as read" onClick={() => handleMarkAsRead(notification)}>
+              <CheckIcon />
+            </IconButton>
+          </ListItemSecondaryAction>
+        </ListItem>
+      ))}
+    </List>
   );
 };
 

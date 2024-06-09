@@ -23,6 +23,16 @@ class ProjectService {
     this.saveToLocalStorage();
   }
 
+  deleteProject(projectId: string) {
+    this.projects = this.projects.filter(project => project.id !== projectId);
+    delete this.projectStories[projectId];
+    if (this.currentProjectId === projectId) {
+      this.currentProjectId = null;
+      localStorage.removeItem('currentProjectId');
+    }
+    this.saveToLocalStorage();
+  }
+
   getAllStories(projectId: string): Story[] {
     return this.projectStories[projectId] || [];
   }
