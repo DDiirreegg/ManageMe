@@ -1,13 +1,13 @@
 import React from 'react';
 import { Story } from '../Models/Story';
 import { Task } from '../Models/Task';
-import { User } from '../Models/User'; // Добавьте это
+import { User } from '../Models/User'; 
 import { Button, Typography, Box, List, ListItem, Grid, Paper } from '@mui/material';
 
 interface StoryDetailProps {
   story: Story;
   tasks: Task[];
-  users: User[]; // Добавьте это
+  users: User[]; 
   onBack: () => void;
   onEditTask: (task: Task) => void;
   onDeleteTask: (storyId: string, taskId: string) => void;

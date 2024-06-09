@@ -6,6 +6,7 @@ import TaskService from './Services/TaskService';
 import { Task } from './Models/Task';
 import UserService from './Services/UserService';
 import { User } from './Models/User';
+import Modal from 'react-modal';
 import Header from './components/Header';
 import ProjectList from './components/ProjectList';
 import StoryList from './components/StoryList';
@@ -15,7 +16,12 @@ import StoryForm from './components/StoryForm';
 import LoginForm from './components/LoginForm';
 import ProfileContainer from './components/ProfileContainer';
 import Settings from './components/Settings';
-import { createTheme, ThemeProvider, CssBaseline, Container, Button, Typography, Box, TextField, Grid, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import NotificationList from './components/Notification/NotificationList';
+import { useNotificationService, Notification } from './Services/NotificationService';
+import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
+import { Container, Button, Typography, Box } from '@mui/material';
+
+Modal.setAppElement('#root');
 
 const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -33,9 +39,10 @@ const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'profile' | 'projects' | 'settings'>('projects');
+  const [activeTab, setActiveTab] = useState<'profile' | 'projects' | 'settings' | 'notifications'>('projects');
   const [darkMode, setDarkMode] = useState<boolean>(false);
-  const [users, setUsers] = useState<User[]>([]); // Добавьте состояние для пользователей
+  
+  const notificationService = useNotificationService();
 
   const handleLoginSuccess = (token: string, refreshToken: string) => {
     setAccessToken(token);
@@ -51,7 +58,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     setProjects(ProjectService.getAllProjects());
-    setUsers(UserService.getAllUsers()); // Получите пользователей из сервиса
     if (currentProjectId) {
       const projectStories = ProjectService.getAllStories(currentProjectId);
       setStories(projectStories);
@@ -71,6 +77,15 @@ const App: React.FC = () => {
         setEditingStory(undefined);
       } else {
         ProjectService.createStory(currentProjectId, story);
+        if (story.priority === 'medium' || story.priority === 'high') {
+          sendNotification({
+            title: 'New Story Created',
+            message: `A new story with priority ${story.priority} has been created.`,
+            date: new Date().toISOString(),
+            priority: story.priority,
+            read: false
+          });
+        }
       }
       setStories(ProjectService.getAllStories(currentProjectId));
       setIsModalOpen(false);
@@ -84,6 +99,15 @@ const App: React.FC = () => {
         setEditingTask(undefined);
       } else {
         TaskService.createTask(viewingStory.id, task);
+        if (task.priority === 'medium' || task.priority === 'high') {
+          sendNotification({
+            title: 'New Task Created',
+            message: `A new task with priority ${task.priority} has been created.`,
+            date: new Date().toISOString(),
+            priority: task.priority,
+            read: false
+          });
+        }
       }
       setTasks(prevTasks => ({
         ...prevTasks,
@@ -91,6 +115,10 @@ const App: React.FC = () => {
       }));
       setIsModalOpen(false);
     }
+  };
+
+  const sendNotification = (notification: Notification) => {
+    notificationService.send(notification);
   };
 
   const handleEditStory = (story: Story) => {
@@ -189,6 +217,8 @@ const App: React.FC = () => {
     },
   });
 
+  const users = UserService.getAllUsers();
+
   if (!isLoggedIn) {
     return <LoginForm onLoginSuccess={handleLoginSuccess} />;
   }
@@ -220,11 +250,11 @@ const App: React.FC = () => {
                     <StoryDetail
                       story={viewingStory}
                       tasks={tasks[viewingStory.id] || []}
-                      users={users} // Передайте пользователей в StoryDetail
                       onBack={() => setViewingStory(null)}
                       onEditTask={handleEditTask}
                       onDeleteTask={handleDeleteTask}
                       onAddTask={() => openModal(false)}
+                      users={users}
                     />
                   ) : (
                     <StoryList
@@ -240,46 +270,50 @@ const App: React.FC = () => {
             </>
           )}
           {activeTab === 'settings' && <Settings onToggleDarkMode={toggleDarkMode} darkMode={darkMode} />}
+          {activeTab === 'notifications' && <NotificationList />}
         </Container>
 
-        <Dialog open={isModalOpen} onClose={closeModal} maxWidth="sm" fullWidth>
-          <DialogTitle>{isStoryForm ? (editingStory ? "Edit Story" : "New Story") : (editingTask ? "Edit Task" : "New Task")}</DialogTitle>
-          <DialogContent>
-            {isStoryForm ? (
-              <StoryForm
-                onSubmit={handleSubmitStory}
-                onCancel={closeModal}
-                editingStory={editingStory}
-              />
-            ) : (
-              <TaskForm
-                stories={stories}
-                users={users}
-                onSubmit={handleSubmitTask}
-                onCancel={closeModal}
-                editingTask={editingTask}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+        <Modal
+          isOpen={isModalOpen}
+          onRequestClose={closeModal}
+          contentLabel={isStoryForm ? (editingStory ? "Edit Story" : "New Story") : (editingTask ? "Edit Task" : "New Task")}
+        >
+          <h2>{isStoryForm ? (editingStory ? "Edit Story" : "New Story") : (editingTask ? "Edit Task" : "New Task")}</h2>
+          {isStoryForm ? (
+            <StoryForm
+              onSubmit={handleSubmitStory}
+              onCancel={closeModal}
+              editingStory={editingStory}
+            />
+          ) : (
+            <TaskForm
+              stories={stories}
+              users={users}
+              onSubmit={handleSubmitTask}
+              onCancel={closeModal}
+              editingTask={editingTask}
+            />
+          )}
+        </Modal>
 
-        <Dialog open={isProjectModalOpen} onClose={closeProjectModal} maxWidth="xs" fullWidth>
-          <DialogTitle>New Project</DialogTitle>
-          <DialogContent>
-            <Box component="form" onSubmit={handleSubmitProject} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                label="Project Name"
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                required
-              />
-            </Box>
-          </DialogContent>
-          <DialogActions>
+        <Modal
+          isOpen={isProjectModalOpen}
+          onRequestClose={closeProjectModal}
+          contentLabel="New Project"
+        >
+          <h2>New Project</h2>
+          <form onSubmit={handleSubmitProject}>
+            <input
+              type="text"
+              placeholder="Project Name"
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+              required
+            />
             <Button variant="contained" type="submit">Add Project</Button>
-            <Button variant="outlined" onClick={closeProjectModal}>Close</Button>
-          </DialogActions>
-        </Dialog>
+          </form>
+          <Button variant="contained" onClick={closeProjectModal}>Close</Button>
+        </Modal>
       </Box>
     </ThemeProvider>
   );
