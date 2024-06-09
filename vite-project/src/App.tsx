@@ -1,6 +1,7 @@
 import React, { useState, useEffect, FormEvent } from 'react';
 import { Project } from './Models/Project';
 import ProjectService from './Services/ProjectService';
+import StoryService from './Services/StoryService';
 import { Story } from './Models/Story';
 import TaskService from './Services/TaskService';
 import { Task } from './Models/Task';
@@ -57,7 +58,7 @@ const App: React.FC = () => {
   useEffect(() => {
     setProjects(ProjectService.getAllProjects());
     if (currentProjectId) {
-      const projectStories = ProjectService.getAllStories(currentProjectId);
+      const projectStories = StoryService.getAllStories(currentProjectId);
       setStories(projectStories);
 
       const projectTasks: { [storyId: string]: Task[] } = {};
@@ -71,12 +72,12 @@ const App: React.FC = () => {
   const handleSubmitStory = (story: Story) => {
     if (currentProjectId) {
       if (editingStory) {
-        ProjectService.updateStory(currentProjectId, story);
+        StoryService.updateStory(currentProjectId, story);
         setEditingStory(undefined);
       } else {
-        ProjectService.createStory(currentProjectId, story);
+        StoryService.createStory(currentProjectId, story);
       }
-      setStories(ProjectService.getAllStories(currentProjectId));
+      setStories(StoryService.getAllStories(currentProjectId));
       setIsModalOpen(false);
 
       if (story.priority === 'medium' || story.priority === 'high') {
@@ -136,8 +137,8 @@ const App: React.FC = () => {
 
   const handleDeleteStory = (id: string) => {
     if (currentProjectId) {
-      ProjectService.deleteStory(currentProjectId, id);
-      setStories(ProjectService.getAllStories(currentProjectId));
+      StoryService.deleteStory(currentProjectId, id);
+      setStories(StoryService.getAllStories(currentProjectId));
       setTasks(prevTasks => {
         const newTasks = { ...prevTasks };
         delete newTasks[id];
