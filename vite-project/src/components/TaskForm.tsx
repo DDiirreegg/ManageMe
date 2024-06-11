@@ -2,7 +2,7 @@ import React, { useState, FormEvent } from 'react';
 import { Story } from '../Models/Story';
 import { Task } from '../Models/Task';
 import { User } from '../Models/User';
-import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Box, Grid, Paper } from '@mui/material';
+import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Box, Paper } from '@mui/material';
 
 interface TaskFormProps {
   stories: Story[];
@@ -12,6 +12,10 @@ interface TaskFormProps {
   editingTask?: Task;
 }
 
+const isValidDate = (date: any): boolean => {
+  return date instanceof Date && !isNaN(date.getTime());
+};
+
 const TaskForm: React.FC<TaskFormProps> = ({ stories, users, onSubmit, onCancel, editingTask }) => {
   const [name, setName] = useState(editingTask?.name || '');
   const [description, setDescription] = useState(editingTask?.description || '');
@@ -19,9 +23,13 @@ const TaskForm: React.FC<TaskFormProps> = ({ stories, users, onSubmit, onCancel,
   const [storyId, setStoryId] = useState(editingTask?.storyId || stories[0]?.id || '');
   const [estimatedHours, setEstimatedHours] = useState<number>(editingTask?.estimatedHours || 0);
   const [status, setStatus] = useState<'todo' | 'doing' | 'done'>(editingTask?.status || 'todo');
-  const [assigneeId, setAssigneeId] = useState<string | undefined>(editingTask?.assigneeId || undefined);
-  const [startDate, setStartDate] = useState(editingTask?.startDate ? editingTask.startDate.toISOString().slice(0, 10) : '');
-  const [endDate, setEndDate] = useState(editingTask?.endDate ? editingTask.endDate.toISOString().slice(0, 10) : '');
+  const [assigneeId, setAssigneeId] = useState<string | ''>(editingTask?.assigneeId || '');
+  const [startDate, setStartDate] = useState(
+    editingTask?.startDate && isValidDate(new Date(editingTask.startDate)) ? new Date(editingTask.startDate).toISOString().slice(0, 10) : ''
+  );
+  const [endDate, setEndDate] = useState(
+    editingTask?.endDate && isValidDate(new Date(editingTask.endDate)) ? new Date(editingTask.endDate).toISOString().slice(0, 10) : ''
+  );
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -34,24 +42,27 @@ const TaskForm: React.FC<TaskFormProps> = ({ stories, users, onSubmit, onCancel,
       estimatedHours,
       status,
       createdAt: editingTask?.createdAt || new Date(),
-      startDate: status === 'doing' ? new Date(startDate) : undefined,
-      endDate: status === 'done' ? new Date(endDate) : undefined,
-      assigneeId: status !== 'todo' ? assigneeId : undefined,
+      startDate: status === 'doing' && startDate ? new Date(startDate) : undefined,
+      endDate: status === 'done' && endDate ? new Date(endDate) : undefined,
+      assigneeId: status !== 'todo' ? assigneeId || undefined : undefined,
     };
-    onSubmit(task);
+    
+    const cleanedTask = Object.fromEntries(Object.entries(task).filter(([_, v]) => v !== undefined));
+
+    onSubmit(cleanedTask as Task);
   };
 
   return (
     <Paper sx={{ p: 3, mt: 2 }}>
       <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <TextField
-          label="Task Name"
+          label="New task"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
         />
         <TextField
-          label="Task Description"
+          label="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           multiline
@@ -61,9 +72,9 @@ const TaskForm: React.FC<TaskFormProps> = ({ stories, users, onSubmit, onCancel,
         <FormControl required sx={{ minWidth: 120 }}>
           <InputLabel>Priority</InputLabel>
           <Select value={priority} onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}>
-            <MenuItem value="low">Low</MenuItem>
-            <MenuItem value="medium">Medium</MenuItem>
-            <MenuItem value="high">High</MenuItem>
+            <MenuItem value="low">low</MenuItem>
+            <MenuItem value="medium">medium</MenuItem>
+            <MenuItem value="high">high</MenuItem>
           </Select>
         </FormControl>
         <FormControl required sx={{ minWidth: 120 }}>
@@ -75,7 +86,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ stories, users, onSubmit, onCancel,
           </Select>
         </FormControl>
         <TextField
-          label="Estimated Hours"
+          label="Estimated hours"
           type="number"
           value={estimatedHours}
           onChange={(e) => setEstimatedHours(Number(e.target.value))}
@@ -84,9 +95,9 @@ const TaskForm: React.FC<TaskFormProps> = ({ stories, users, onSubmit, onCancel,
         <FormControl required sx={{ minWidth: 120 }}>
           <InputLabel>Status</InputLabel>
           <Select value={status} onChange={(e) => setStatus(e.target.value as 'todo' | 'doing' | 'done')}>
-            <MenuItem value="todo">To Do</MenuItem>
-            <MenuItem value="doing">Doing</MenuItem>
-            <MenuItem value="done">Done</MenuItem>
+            <MenuItem value="todo">К todo</MenuItem>
+            <MenuItem value="doing">doing</MenuItem>
+            <MenuItem value="done">done</MenuItem>
           </Select>
         </FormControl>
         {status === 'doing' && (
@@ -114,7 +125,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ stories, users, onSubmit, onCancel,
         {status === 'done' && (
           <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
-              label="End Date"
+              label="End day"
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
@@ -135,7 +146,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ stories, users, onSubmit, onCancel,
         )}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
           <Button variant="contained" color="primary" type="submit">
-            {editingTask ? 'Update Task' : 'Add Task'}
+            {editingTask ? 'Update task' : 'Add task'}
           </Button>
           <Button variant="outlined" color="secondary" onClick={onCancel}>
             Cancel

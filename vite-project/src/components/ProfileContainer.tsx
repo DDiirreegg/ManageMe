@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Profile from './Profile';
 import UserService, { User } from '../Models/User';
-import { CircularProgress, Box, Typography } from '@mui/material';
 
 const ProfileContainer: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -12,17 +11,36 @@ const ProfileContainer: React.FC = () => {
   }, []);
 
   return (
-    <Box sx={{ p: 2 }}>
+    <div>
       {currentUser ? (
         <Profile user={currentUser} />
       ) : (
-        <Box sx={{ textAlign: 'center' }}>
-          <CircularProgress />
-          <Typography variant="body1" sx={{ mt: 2 }}>Loading...</Typography>
-        </Box>
+        <p>Loading...</p>
       )}
-    </Box>
+    </div>
   );
 };
 
 export default ProfileContainer;
+
+// import React from 'react';
+// import Profile from './Profile';
+// import { CircularProgress, Box, Typography } from '@mui/material';
+// import { useUser } from './UserContext';
+
+// const ProfileContainer: React.FC = () => {
+//   const { currentUser } = useUser();
+
+//   return (
+//     <Box sx={{ p: 2 }}>
+//       {currentUser ? (
+//         <Profile user={currentUser} />
+//       ) : (
+//         <Box sx={{ textAlign: 'center' }}>
+//           <CircularProgress />
+//           <Typography variant="body1" sx={{ mt: 2 }}>Loading...</Typography>
+//         </Box>
+//       )}
+//     </Box>
+//   );
+// };

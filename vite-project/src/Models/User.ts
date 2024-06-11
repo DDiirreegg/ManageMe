@@ -30,3 +30,12 @@ class UserService {
 }
 
 export default new UserService();
+
+
+// export interface User {
+//   id: string;
+//   firstName: string;
+//   lastName: string;
+//   password: string;
+//   role: 'admin' | 'devops' | 'developer';
+// }

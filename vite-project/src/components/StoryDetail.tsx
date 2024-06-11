@@ -1,14 +1,14 @@
 import React from 'react';
 import { Story } from '../Models/Story';
 import { Task } from '../Models/Task';
-import { User } from '../Models/User'; 
+import { User } from '../Models/User';
 import { Button, Typography, Box, List, ListItem, Grid, Paper } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 interface StoryDetailProps {
   story: Story;
   tasks: Task[];
-  users: User[]; 
+  users: User[];
   onBack: () => void;
   onEditTask: (task: Task) => void;
   onDeleteTask: (storyId: string, taskId: string) => void;
@@ -16,31 +16,30 @@ interface StoryDetailProps {
 }
 
 const StoryDetail: React.FC<StoryDetailProps> = ({ story, tasks, users, onBack, onEditTask, onDeleteTask, onAddTask }) => {
-
   const getAssigneeName = (assigneeId?: string) => {
     if (!users || users.length === 0) return 'Unassigned';
     const user = users.find(user => user.id === assigneeId);
     return user ? `${user.firstName} ${user.lastName}` : 'Unassigned';
   };
 
+  const formatDate = (timestamp: any) => {
+    const date = timestamp.toDate(); // Assuming timestamp is a Firestore Timestamp
+    return date.toLocaleDateString();
+  };
+
   return (
     <Box sx={{ p: 2 }}>
-      <Button 
-        variant="contained" 
-        onClick={onBack} 
-        startIcon={<ArrowBackIcon />} 
-        sx={{ mb: 2 }}
-      >
+      <Button variant="contained" onClick={onBack} startIcon={<ArrowBackIcon />} sx={{ mb: 2 }}>
         Back to Stories
       </Button>
-      <Paper elevation={3} sx={{ p: 3, borderRadius: '8px', mb: 2 }}>
-        <Typography variant="h4" gutterBottom>Story: {story.name}</Typography>
-        <Typography variant="body1" gutterBottom>Description: {story.description}</Typography>
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <Typography variant="h4" gutterBottom>{story.name}</Typography>
+        <Typography variant="body1" gutterBottom>{story.description}</Typography>
         <Typography variant="body1" gutterBottom>Priority: {story.priority}</Typography>
         <Typography variant="body1" gutterBottom>Status: {story.status}</Typography>
-        <Typography variant="body1" gutterBottom>Created At: {story.createdAt.toLocaleDateString()}</Typography>
+        <Typography variant="body1" gutterBottom>Created At: {formatDate(story.createdAt)}</Typography>
 
-        <Button variant="outlined" onClick={onAddTask} sx={{ mt: 2 }}>Add Task</Button>
+        <Button variant="outlined" onClick={onAddTask} sx={{ mb: 2 }}>Add Task</Button>
       </Paper>
 
       <Typography variant="h5" gutterBottom>Tasks</Typography>
@@ -48,18 +47,18 @@ const StoryDetail: React.FC<StoryDetailProps> = ({ story, tasks, users, onBack, 
         <List>
           {tasks.map(task => (
             <ListItem key={task.id}>
-              <Paper elevation={2} sx={{ p: 2, width: '100%', borderRadius: '8px' }}>
+              <Paper sx={{ p: 2, width: '100%' }}>
                 <Typography variant="h6">Task: {task.name}</Typography>
                 <Typography variant="body1">Description: {task.description}</Typography>
                 <Typography variant="body1">Estimated hours: {task.estimatedHours}</Typography>
                 <Typography variant="body1">Priority: {task.priority}</Typography>
                 <Typography variant="body1">Status: {task.status}</Typography>
-                <Typography variant="body1">Created: {task.createdAt.toLocaleDateString()}</Typography>
+                <Typography variant="body1">Created: {formatDate(task.createdAt)}</Typography>
                 {task.startDate && (
-                  <Typography variant="body1">Start date: {task.startDate.toLocaleDateString()}</Typography>
+                  <Typography variant="body1">Start date: {formatDate(task.startDate)}</Typography>
                 )}
                 {task.endDate && (
-                  <Typography variant="body1">End date: {task.endDate.toLocaleDateString()}</Typography>
+                  <Typography variant="body1">End date: {formatDate(task.endDate)}</Typography>
                 )}
                 {task.assigneeId && (
                   <Typography variant="body1">Assignee: {getAssigneeName(task.assigneeId)}</Typography>

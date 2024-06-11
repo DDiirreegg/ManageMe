@@ -1,45 +1,42 @@
+import { getFirestore, collection, getDocs, addDoc, updateDoc, doc, deleteDoc, query, where } from 'firebase/firestore';
 import { Task } from '../Models/Task';
 
+const db = getFirestore();
+
 class TaskService {
-  private tasks: { [key: string]: Task[] } = JSON.parse(localStorage.getItem('tasks') || '{}');
+  private taskCollection = collection(db, 'tasks');
 
-  private saveToLocalStorage() {
-    localStorage.setItem('tasks', JSON.stringify(this.tasks));
+  async getAllTasks(storyId: string): Promise<Task[]> {
+    const q = query(this.taskCollection, where('storyId', '==', storyId));
+    const snapshot = await getDocs(q);
+    const tasks: Task[] = [];
+    snapshot.forEach(doc => {
+      tasks.push({ id: doc.id, ...doc.data() } as Task);
+    });
+    return tasks;
   }
 
-  getAllTasks(storyId: string): Task[] {
-    return this.tasks[storyId] || [];
+  async createTask(task: Omit<Task, 'id'>): Promise<void> {
+    const taskWithDefaults: Partial<Task> = {
+      ...task,
+      assigneeId: task.assigneeId || undefined,
+      endDate: task.endDate || undefined,
+      startDate: task.startDate || undefined,
+    };
+
+    const cleanedTask = Object.fromEntries(Object.entries(taskWithDefaults).filter(([_, v]) => v !== undefined));
+
+    await addDoc(this.taskCollection, cleanedTask);
   }
 
-  getTaskById(storyId: string, taskId: string): Task | undefined {
-    return this.tasks[storyId]?.find(task => task.id === taskId);
+  async updateTask(taskId: string, task: Partial<Task>): Promise<void> {
+    const taskDocRef = doc(this.taskCollection, taskId);
+    await updateDoc(taskDocRef, task);
   }
 
-  createTask(storyId: string, task: Task) {
-    if (!this.tasks[storyId]) {
-      this.tasks[storyId] = [];
-    }
-    this.tasks[storyId].push(task);
-    this.saveToLocalStorage();
-  }
-
-  updateTask(storyId: string, updatedTask: Task) {
-    const storyTasks = this.tasks[storyId];
-    if (storyTasks) {
-      const index = storyTasks.findIndex(task => task.id === updatedTask.id);
-      if (index !== -1) {
-        storyTasks[index] = updatedTask;
-        this.saveToLocalStorage();
-      }
-    }
-  }
-
-  deleteTask(storyId: string, taskId: string) {
-    const storyTasks = this.tasks[storyId];
-    if (storyTasks) {
-      this.tasks[storyId] = storyTasks.filter(task => task.id !== taskId);
-      this.saveToLocalStorage();
-    }
+  async deleteTask(taskId: string): Promise<void> {
+    const taskDoc = doc(this.taskCollection, taskId);
+    await deleteDoc(taskDoc);
   }
 }
 

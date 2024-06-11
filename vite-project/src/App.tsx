@@ -2,10 +2,10 @@ import React, { useState, useEffect, FormEvent } from 'react';
 import { Project } from './Models/Project';
 import ProjectService from './Services/ProjectService';
 import StoryService from './Services/StoryService';
-import { Story } from './Models/Story';
 import TaskService from './Services/TaskService';
-import { Task } from './Models/Task';
 import UserService from './Services/UserService';
+import { Story } from './Models/Story';
+import { Task } from './Models/Task';
 import { User } from './Models/User';
 import Modal from 'react-modal';
 import Header from './components/Header';
@@ -28,6 +28,7 @@ const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
   const [tasks, setTasks] = useState<{ [storyId: string]: Task[] }>({});
+  const [users, setUsers] = useState<User[]>([]);
   const [projectName, setProjectName] = useState('');
   const [editingStory, setEditingStory] = useState<Story | undefined>(undefined);
   const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
@@ -56,30 +57,45 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    setProjects(ProjectService.getAllProjects());
-    if (currentProjectId) {
-      const projectStories = StoryService.getAllStories(currentProjectId);
-      setStories(projectStories);
+    const fetchData = async () => {
+      const fetchedProjects = await ProjectService.getAllProjects();
+      setProjects(fetchedProjects);
 
-      const projectTasks: { [storyId: string]: Task[] } = {};
-      projectStories.forEach(story => {
-        projectTasks[story.id] = TaskService.getAllTasks(story.id);
-      });
-      setTasks(projectTasks);
-    }
+      if (currentProjectId) {
+        const fetchedStories = await StoryService.getAllStories(currentProjectId);
+        setStories(fetchedStories);
+
+        const projectTasks: { [storyId: string]: Task[] } = {};
+        for (const story of fetchedStories) {
+          const tasks = await TaskService.getAllTasks(story.id);
+          projectTasks[story.id] = tasks;
+        }
+        setTasks(projectTasks);
+      }
+    };
+
+    const fetchUsers = async () => {
+      const fetchedUsers = await UserService.getAllUsers();
+      setUsers(fetchedUsers);
+    };
+
+    fetchData();
+    fetchUsers();
   }, [currentProjectId]);
 
-  const handleSubmitStory = (story: Story) => {
+  const handleSubmitStory = async (story: Story) => {
     if (currentProjectId) {
+      const { id, ...storyWithoutId } = story;
       if (editingStory) {
-        StoryService.updateStory(currentProjectId, story);
+        await StoryService.updateStory(currentProjectId, story);
         setEditingStory(undefined);
       } else {
-        StoryService.createStory(currentProjectId, story);
+        await StoryService.createStory(currentProjectId, storyWithoutId);
       }
-      setStories(StoryService.getAllStories(currentProjectId));
+      const updatedStories = await StoryService.getAllStories(currentProjectId);
+      setStories(updatedStories);
       setIsModalOpen(false);
-
+  
       if (story.priority === 'medium' || story.priority === 'high') {
         const projectName = projects.find(p => p.id === currentProjectId)?.name;
         const notification: Notification = {
@@ -94,20 +110,21 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSubmitTask = (task: Task) => {
+  const handleSubmitTask = async (task: Task) => {
     if (viewingStory) {
       if (editingTask) {
-        TaskService.updateTask(viewingStory.id, task);
+        await TaskService.updateTask(task.id, task);
         setEditingTask(undefined);
       } else {
-        TaskService.createTask(viewingStory.id, task);
+        await TaskService.createTask(task);
       }
+      const updatedTasks = await TaskService.getAllTasks(viewingStory.id);
       setTasks(prevTasks => ({
         ...prevTasks,
-        [viewingStory.id]: TaskService.getAllTasks(viewingStory.id),
+        [viewingStory.id]: updatedTasks,
       }));
       setIsModalOpen(false);
-
+  
       if (task.priority === 'medium' || task.priority === 'high') {
         const projectName = projects.find(p => p.id === currentProjectId)?.name;
         const storyName = viewingStory.name;
@@ -122,6 +139,22 @@ const App: React.FC = () => {
       }
     }
   };
+  
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setIsStoryForm(false);
+    setIsModalOpen(true);
+  };
+  
+  const handleDeleteTask = async (storyId: string, taskId: string) => {
+    await TaskService.deleteTask(taskId);
+    const updatedTasks = await TaskService.getAllTasks(storyId);
+    setTasks(prevTasks => ({
+      ...prevTasks,
+      [storyId]: updatedTasks,
+    }));
+  };
+  
 
   const handleEditStory = (story: Story) => {
     setEditingStory(story);
@@ -129,16 +162,11 @@ const App: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleEditTask = (task: Task) => {
-    setEditingTask(task);
-    setIsStoryForm(false);
-    setIsModalOpen(true);
-  };
-
-  const handleDeleteStory = (id: string) => {
+  const handleDeleteStory = async (id: string) => {
     if (currentProjectId) {
-      StoryService.deleteStory(currentProjectId, id);
-      setStories(StoryService.getAllStories(currentProjectId));
+      await StoryService.deleteStory(currentProjectId, id);
+      const updatedStories = await StoryService.getAllStories(currentProjectId);
+      setStories(updatedStories);
       setTasks(prevTasks => {
         const newTasks = { ...prevTasks };
         delete newTasks[id];
@@ -147,54 +175,49 @@ const App: React.FC = () => {
     }
   };
 
-  const handleDeleteTask = (storyId: string, taskId: string) => {
-    TaskService.deleteTask(storyId, taskId);
-    setTasks(prevTasks => ({
-      ...prevTasks,
-      [storyId]: TaskService.getAllTasks(storyId),
-    }));
-  };
-
-  const handleProjectChange = (projectId: string) => {
-    ProjectService.setCurrentProject(projectId);
+  const handleProjectChange = async (projectId: string) => {
     setCurrentProjectId(projectId);
     setViewingStory(null);
   };
 
-  const handleDeleteProject = (projectId: string) => {
-    ProjectService.deleteProject(projectId);
-    setProjects(ProjectService.getAllProjects());
+  const handleDeleteProject = async (projectId: string) => {
+    await ProjectService.deleteProject(projectId);
+    const updatedProjects = await ProjectService.getAllProjects();
+    setProjects(updatedProjects);
     if (currentProjectId === projectId) {
-      setCurrentProjectId(null);
+        setCurrentProjectId(null);
     }
-  };
+};
 
-  const handleAssigneeChange = (task: Task, userId: string) => {
-    const updatedTask: Task = {
-      ...task,
-      assigneeId: userId,
-      status: 'doing',
-      startDate: new Date()
-    };
-    TaskService.updateTask(task.storyId, updatedTask);
-    setTasks(prevTasks => ({
-      ...prevTasks,
-      [task.storyId]: TaskService.getAllTasks(task.storyId),
-    }));
-  };
 
-  const handleTaskStatusChange = (task: Task, newStatus: 'todo' | 'doing' | 'done') => {
-    const updatedTask: Task = {
-      ...task,
-      status: newStatus,
-      endDate: newStatus === 'done' ? new Date() : undefined
-    };
-    TaskService.updateTask(task.storyId, updatedTask);
-    setTasks(prevTasks => ({
-      ...prevTasks,
-      [task.storyId]: TaskService.getAllTasks(task.storyId),
-    }));
-  };
+  // const handleAssigneeChange = async (task: Task, userId: string) => {
+  //   const updatedTask: Task = {
+  //     ...task,
+  //     assigneeId: userId,
+  //     status: 'doing',
+  //     startDate: new Date()
+  //   };
+  //   await TaskService.updateTask(task.id, updatedTask);
+  //   const updatedTasks = await TaskService.getAllTasks(task.storyId);
+  //   setTasks(prevTasks => ({
+  //     ...prevTasks,
+  //     [task.storyId]: updatedTasks,
+  //   }));
+  // };
+
+  // const handleTaskStatusChange = async (task: Task, newStatus: 'todo' | 'doing' | 'done') => {
+  //   const updatedTask: Task = {
+  //     ...task,
+  //     status: newStatus,
+  //     endDate: newStatus === 'done' ? new Date() : undefined
+  //   };
+  //   await TaskService.updateTask(task.id, updatedTask);
+  //   const updatedTasks = await TaskService.getAllTasks(task.storyId);
+  //   setTasks(prevTasks => ({
+  //     ...prevTasks,
+  //     [task.storyId]: updatedTasks,
+  //   }));
+  // };
 
   const openModal = (isStory: boolean) => {
     setIsStoryForm(isStory);
@@ -205,14 +228,15 @@ const App: React.FC = () => {
   const openProjectModal = () => setIsProjectModalOpen(true);
   const closeProjectModal = () => setIsProjectModalOpen(false);
 
-  const handleSubmitProject = (e: FormEvent) => {
+  const handleSubmitProject = async (e: FormEvent) => {
     e.preventDefault();
     const newProject: Project = {
       id: Date.now().toString(),
       name: projectName,
     };
-    ProjectService.createProject(newProject);
-    setProjects(ProjectService.getAllProjects());
+    await ProjectService.createProject(newProject);
+    const updatedProjects = await ProjectService.getAllProjects();
+    setProjects(updatedProjects);
     setProjectName('');
     setIsProjectModalOpen(false);
   };
@@ -226,8 +250,6 @@ const App: React.FC = () => {
       mode: darkMode ? 'dark' : 'light',
     },
   });
-
-  const users = UserService.getAllUsers();
 
   if (!isLoggedIn) {
     return <LoginForm onLoginSuccess={handleLoginSuccess} />;
